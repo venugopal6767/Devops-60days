@@ -1,38 +1,33 @@
-name: Docker Python App CI
+name: Build and Run Docker Locally
 
 on:
   push:
     branches:
-      - main  # or any branch you want
+      - main
 
 jobs:
-  build-and-run:
+  build-run:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-
-      - name: Remove old containers (if any)
+      - name: Set Docker image tag from build number
         run: |
-          CONTAINERS=$(docker ps -aq)
-          if [ -n "$CONTAINERS" ]; then
-            docker rm -f $CONTAINERS
-          fi
+          echo "TAG=${{ github.run_number }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=my-app:${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run:  
-         cd python-github
-         docker build -t my-python-app .
+        run: docker build -t $IMAGE_NAME .
 
-      - name: Run Docker container
-        run: docker run -d -p 5000:5000 --name test-app my-python-app
+      - name: Remove old container (if running)
+        run: docker rm -f test-app || true
 
-      - name: Wait for app to start
-        run: sleep 5
+      - name: Run container from new image
+        run: docker run -d -p 5000:5000 --name test-app $IMAGE_NAME
 
-      - name: Test with curl
-        run: curl http://localhost:5000
+      - name: Test container with curl
+        run: |
+          sleep 5
+          curl http://localhost:5000
