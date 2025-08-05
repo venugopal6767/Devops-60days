@@ -19,10 +19,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd Github-actions/Python-docker-github
+          cd python-github
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Flask App
         run: |
+          cd python-github
           python app.py
