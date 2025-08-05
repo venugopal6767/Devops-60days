@@ -1,24 +1,36 @@
-name: Run Python Flask App
+name: Docker Python App CI
 
 on:
   push:
-  workflow_dispatch:  # You can trigger this manually
+    branches:
+      - main  # or any branch you want
 
 jobs:
-  run-app:
+  build-and-run:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Build Docker image
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Remove old containers (if any)
         run: |
-          cd python-github
-          docker build -t my-python-app .
+          CONTAINERS=$(docker ps -aq)
+          if [ -n "$CONTAINERS" ]; then
+            docker rm -f $CONTAINERS
+          fi
+
+      - name: Build Docker image
+        run: docker build -t my-python-app .
 
       - name: Run Docker container
-        run: |
-          docker rm -f $(docker ps -aq)
-          docker run -d -p 5000:5000 --name test-app my-python-app
-          curl http://localhost:5000
+        run: docker run -d -p 5000:5000 --name test-app my-python-app
+
+      - name: Wait for app to start
+        run: sleep 5
+
+      - name: Test with curl
+        run: curl http://localhost:5000
