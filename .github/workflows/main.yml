@@ -19,7 +19,9 @@ jobs:
           echo "IMAGE_NAME=my-app:${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Build Docker image
-        run: docker build -t $IMAGE_NAME .
+        run: |
+          cd python-github
+          docker build -t $IMAGE_NAME .
 
       - name: Remove old container (if running)
         run: docker rm -f test-app || true
