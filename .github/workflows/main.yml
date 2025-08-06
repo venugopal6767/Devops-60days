@@ -1,35 +1,36 @@
-name: Build and Run Docker Locally
+name: Manual Deploy Workflow
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+      version:
+        description: 'App version to deploy'
+        required: true
+        default: 'v1.0.0'
+        type: string
+
+      dry_run:
+        description: 'Run in dry-run mode?'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
-  build-run:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set Docker image tag from build number
+      - name: Show Inputs
         run: |
-          echo "TAG=${{ github.run_number }}" >> $GITHUB_ENV
-          echo "IMAGE_NAME=my-app:${{ github.run_number }}" >> $GITHUB_ENV
-
-      - name: Build Docker image
-        run: |
-          cd python-github
-          docker build -t $IMAGE_NAME .
-
-      - name: Remove old container (if running)
-        run: docker rm -f test-app || true
-
-      - name: Run container from new image
-        run: docker run -d -p 5000:5000 --name test-app $IMAGE_NAME
-
-      - name: Test container with curl
-        run: |
-          sleep 5
-          curl http://localhost:5000
+          echo "Deploying version: ${{ github.event.inputs.version }}"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Dry run: ${{ github.event.inputs.dry_run }}"
