@@ -1,0 +1,39 @@
+name: testing-workflow
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:  
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+      version:
+        description: 'App version to deploy'
+        required: true
+        default: 'v1.0.0'
+        type: string  
+        options:
+          - v1.0.0
+          - v1.1.0
+          - v2.0.0
+
+jobs:
+  job1:
+   runs-on: self-hosted
+   steps: 
+    - name: checking environment
+      run:  |
+        echo "Environment: ${{ github.event.inputs.environment }}"
+        echo "Version: ${{ github.event.inputs.version }}"
+
